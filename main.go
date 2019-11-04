@@ -53,25 +53,37 @@ func initCmd() {
 		os.Exit(1)
 	}
 
-	err = os.MkdirAll(containerName, 0777)
+	err = os.MkdirAll(containerName+"/upper", 0777)
 	if err != nil {
-		fmt.Printf("Error creating directory %s: %s\n", containerName, err)
+		fmt.Printf("Error creating directory %s: %s\n", containerName+"/upper", err)
 		os.Exit(1)
 	}
 
-	err = syscall.Mount("ubuntu", containerName, "", syscall.MS_BIND, "")
+	err = os.MkdirAll(containerName+"/merged", 0777)
 	if err != nil {
-		fmt.Printf("Error mounting %s to %s: %s\n", "ubuntu", containerName, err)
+		fmt.Printf("Error creating directory %s: %s\n", containerName+"/merged", err)
 		os.Exit(1)
 	}
 
-	err = os.MkdirAll(containerName+"/.oldroot", 0777)
+	err = os.MkdirAll(containerName+"/work", 0777)
 	if err != nil {
-		fmt.Printf("Error creating directory %s: %s\n", containerName+"/.oldroot", err)
+		fmt.Printf("Error creating directory %s: %s\n", containerName+"/work", err)
 		os.Exit(1)
 	}
 
-	err = syscall.PivotRoot(containerName, containerName+"/.oldroot")
+	err = syscall.Mount("none", containerName+"/merged", "overlay", 0, "lowerdir=ubuntu,upperdir="+containerName+"/upper,workdir="+containerName+"/work")
+	if err != nil {
+		fmt.Printf("Error mounting %s to %s: %s\n", "ubuntu", containerName+"/merged", err)
+		os.Exit(1)
+	}
+
+	err = os.MkdirAll(containerName+"/merged/.oldroot", 0777)
+	if err != nil {
+		fmt.Printf("Error creating directory %s: %s\n", containerName+"/merged/.oldroot", err)
+		os.Exit(1)
+	}
+
+	err = syscall.PivotRoot(containerName+"/merged", containerName+"/merged/.oldroot")
 	if err != nil {
 		fmt.Printf("Error changing root to %s: %s\n", containerName+"/merged", err)
 		os.Exit(1)
