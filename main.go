@@ -19,7 +19,7 @@ func main() {
 		cmd.Stderr = os.Stderr
 
 		cmd.SysProcAttr = &syscall.SysProcAttr{
-			Cloneflags: syscall.CLONE_NEWUTS,
+			Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
 		}
 
 		err := cmd.Run()
