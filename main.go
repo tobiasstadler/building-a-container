@@ -53,6 +53,48 @@ func initCmd() {
 		os.Exit(1)
 	}
 
+	err = os.MkdirAll(containerName, 0777)
+	if err != nil {
+		fmt.Printf("Error creating directory %s: %s\n", containerName, err)
+		os.Exit(1)
+	}
+
+	err = syscall.Mount("ubuntu", containerName, "", syscall.MS_BIND, "")
+	if err != nil {
+		fmt.Printf("Error mounting %s to %s: %s\n", "ubuntu", containerName, err)
+		os.Exit(1)
+	}
+
+	err = os.MkdirAll(containerName+"/.oldroot", 0777)
+	if err != nil {
+		fmt.Printf("Error creating directory %s: %s\n", containerName+"/.oldroot", err)
+		os.Exit(1)
+	}
+
+	err = syscall.PivotRoot(containerName, containerName+"/.oldroot")
+	if err != nil {
+		fmt.Printf("Error changing root to %s: %s\n", containerName+"/merged", err)
+		os.Exit(1)
+	}
+
+	err = os.Chdir("/")
+	if err != nil {
+		fmt.Printf("Error changing directory to %s: %s\n", "/", err)
+		os.Exit(1)
+	}
+
+	err = syscall.Unmount("/.oldroot", syscall.MNT_DETACH)
+	if err != nil {
+		fmt.Printf("Error unmounting %s: %s\n", "/.oldroot", err)
+		os.Exit(1)
+	}
+
+	err = os.RemoveAll("/.oldroot")
+	if err != nil {
+		fmt.Printf("Error deleting directory %s: %s\n", "/.oldroot", err)
+		os.Exit(1)
+	}
+
 	err = syscall.Mount("none", "/proc", "proc", 0, "")
 	if err != nil {
 		fmt.Printf("Error mounting %s to %s: %s\n", "proc", "/proc", err)
