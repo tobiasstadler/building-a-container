@@ -51,4 +51,10 @@ func initCmd() {
 		fmt.Printf("Error setting hostname to %s: %s\n", containerName, err)
 		os.Exit(1)
 	}
+
+	err = syscall.Mount("none", "/proc", "proc", 0, "")
+	if err != nil {
+		fmt.Printf("Error mounting %s to %s: %s\n", "proc", "/proc", err)
+		os.Exit(1)
+	}
 }
